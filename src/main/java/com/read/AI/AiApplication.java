@@ -11,7 +11,7 @@ public class AiApplication {
 
 	@RequestMapping("/")
 	public String test() {
-		return "Hello world";
+		return "BackEnd Message";
 	}
 
 	public static void main(String[] args) {
