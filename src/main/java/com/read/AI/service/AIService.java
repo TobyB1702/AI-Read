@@ -1,7 +1,7 @@
 package com.read.AI.service;
 
 
-public class TestService {
+public class AIService {
 
     public String getMessage() {
         return "Hello world";
