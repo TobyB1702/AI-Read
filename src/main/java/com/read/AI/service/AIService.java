@@ -29,7 +29,7 @@ public class AIService {
 
     private static Logger log = LoggerFactory.getLogger(AIService.class);
 
-    public void setup() {
+    public void setup() throws IOException {
         //number of rows and columns in the input pictures
         final int numRows = 28;
         final int numColumns = 28;
@@ -39,6 +39,8 @@ public class AIService {
         int numEpochs = 15;// number of epochs to perform
         double rate = 0.0015;// learning rate
 
+        DataSetIterator mnistTrain = new MnistDataSetIterator(batchSize,true,rngSeed);
+        DataSetIterator mnistTest = new MnistDataSetIterator(batchSize,true,rngSeed);
 
 
 
