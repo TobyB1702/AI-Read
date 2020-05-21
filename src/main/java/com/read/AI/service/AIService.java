@@ -69,7 +69,14 @@ public class AIService {
         model.init();
         model.setListeners(new ScoreIterationListener(5));//print the score with every iteration
 
+        log.info("Train model....");
+        model.fit(mnistTrain, numEpochs);
 
+        log.info("Evaluate model....");
+        Evaluation eval = model.evaluate(mnistTest);
+
+        log.info(eval.stats());
+        log.info("****************modelFinished********************");
 
     }
 }
