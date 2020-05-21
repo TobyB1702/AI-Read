@@ -42,6 +42,29 @@ public class AIService {
         DataSetIterator mnistTrain = new MnistDataSetIterator(batchSize,true,rngSeed);
         DataSetIterator mnistTest = new MnistDataSetIterator(batchSize,true,rngSeed);
 
+        log.info("Build model....");
+
+        MultiLayerConfiguration configuration = new NeuralNetConfiguration.Builder()
+                .seed(rngSeed)
+                .activation(Activation.RELU)
+                .weightInit(WeightInit.XAVIER)
+                .updater(new Nadam())
+                .l2(rate * 0.005) // Regularize Learning model
+                .list()
+                .layer(new DenseLayer.Builder()
+                        .nIn(numRows * numColumns)
+                        .nOut(500)
+                        .build())
+                .layer(new DenseLayer.Builder()
+                        .nIn(500)
+                        .nOut(100)
+                        .build())
+                .layer(new OutputLayer.Builder(LossFunction.NEGATIVELOGLIKELIHOOD)
+                        .activation(Activation.SOFTMAX)
+                        .nOut(outputNum)
+                        .build())
+                .build();
+        
 
 
     }
