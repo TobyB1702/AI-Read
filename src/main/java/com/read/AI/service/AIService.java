@@ -64,7 +64,11 @@ public class AIService {
                         .nOut(outputNum)
                         .build())
                 .build();
-        
+
+        MultiLayerNetwork model = new MultiLayerNetwork(configuration);
+        model.init();
+        model.setListeners(new ScoreIterationListener(5));//print the score with every iteration
+
 
 
     }
