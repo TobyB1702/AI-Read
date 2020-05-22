@@ -7,6 +7,7 @@ import org.deeplearning4j.nn.conf.layers.OutputLayer;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.weights.WeightInit;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
+import org.jetbrains.annotations.NotNull;
 import org.nd4j.evaluation.classification.Evaluation;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
@@ -43,13 +44,7 @@ public class AIService {
         DataSetIterator mnistTrain = new MnistDataSetIterator(batchSize,true,rngSeed);
         DataSetIterator mnistTest = new MnistDataSetIterator(batchSize,true,rngSeed);
 
-        log.info("Build model....");
-
-        MultiLayerConfiguration configuration = setConfigurationForModel(numRows, numColumns, outputNum, rngSeed, rate);
-
-        MultiLayerNetwork model = new MultiLayerNetwork(configuration);
-        model.init();
-        model.setListeners(new ScoreIterationListener(5));//print the score with every iteration
+        MultiLayerNetwork model = buildModel(numRows, numColumns, outputNum, rngSeed, rate);
 
         log.info("Train model....");
         model.fit(mnistTrain, numEpochs);
@@ -60,6 +55,17 @@ public class AIService {
         log.info(eval.stats());
         log.info("****************modelFinished********************");
 
+    }
+
+    @NotNull
+    private static MultiLayerNetwork buildModel(int numRows, int numColumns, int outputNum, int rngSeed, double rate) {
+        log.info("Build model....");
+        MultiLayerConfiguration configuration = setConfigurationForModel(numRows, numColumns, outputNum, rngSeed, rate);
+
+        MultiLayerNetwork model = new MultiLayerNetwork(configuration);
+        model.init();
+        model.setListeners(new ScoreIterationListener(5));//print the score with every iteration
+        return model;
     }
 
     private static MultiLayerConfiguration setConfigurationForModel(int numRows, int numColumns, int outputNum, int rngSeed, double rate) {
