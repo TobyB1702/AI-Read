@@ -11,8 +11,8 @@ public class AIController {
     AIService AIService = new AIService();
 
     @RequestMapping("/")
-    public String test() throws IOException {
-        return AIService.getMessage();
+    public String InitilazeModel() throws IOException {
+        return AIService.CreateModel();
     }
 
 }

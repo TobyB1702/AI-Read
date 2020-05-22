@@ -11,6 +11,7 @@ import org.nd4j.evaluation.classification.Evaluation;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.learning.config.Nadam;
+import org.nd4j.linalg.lossfunctions.LossFunctions;
 import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,14 +23,14 @@ import java.io.IOException;
 //Uses Two input layers and one hidden layer
 public class AIService {
 
-    public String getMessage() throws IOException {
+    public String CreateModel() throws IOException {
         setup();
-        return "Hello world";
+        return "Model Created";
     }
 
     private static Logger log = LoggerFactory.getLogger(AIService.class);
 
-    public void setup() throws IOException {
+    public static void setup() throws IOException {
         //number of rows and columns in the input pictures
         final int numRows = 28;
         final int numColumns = 28;
@@ -44,26 +45,7 @@ public class AIService {
 
         log.info("Build model....");
 
-        MultiLayerConfiguration configuration = new NeuralNetConfiguration.Builder()
-                .seed(rngSeed)
-                .activation(Activation.RELU)
-                .weightInit(WeightInit.XAVIER)
-                .updater(new Nadam())
-                .l2(rate * 0.005) // Regularize Learning model
-                .list()
-                .layer(new DenseLayer.Builder()
-                        .nIn(numRows * numColumns)
-                        .nOut(500)
-                        .build())
-                .layer(new DenseLayer.Builder()
-                        .nIn(500)
-                        .nOut(100)
-                        .build())
-                .layer(new OutputLayer.Builder(LossFunction.NEGATIVELOGLIKELIHOOD)
-                        .activation(Activation.SOFTMAX)
-                        .nOut(outputNum)
-                        .build())
-                .build();
+        MultiLayerConfiguration configuration = setConfigurationForModel(numRows, numColumns, outputNum, rngSeed, rate);
 
         MultiLayerNetwork model = new MultiLayerNetwork(configuration);
         model.init();
@@ -78,5 +60,29 @@ public class AIService {
         log.info(eval.stats());
         log.info("****************modelFinished********************");
 
+    }
+
+    private static MultiLayerConfiguration setConfigurationForModel(int numRows, int numColumns, int outputNum, int rngSeed, double rate) {
+        log.info("Setting up Configuration for Model....");
+        return new NeuralNetConfiguration.Builder()
+                    .seed(rngSeed)
+                    .activation(Activation.RELU)
+                    .weightInit(WeightInit.XAVIER)
+                    .updater(new Nadam())
+                    .l2(rate * 0.005) // Regularize Learning model
+                    .list()
+                    .layer(new DenseLayer.Builder()
+                            .nIn(numRows * numColumns)
+                            .nOut(500)
+                            .build())
+                    .layer(new DenseLayer.Builder()
+                            .nIn(500)
+                            .nOut(100)
+                            .build())
+                    .layer(new OutputLayer.Builder(LossFunction.NEGATIVELOGLIKELIHOOD)
+                            .activation(Activation.SOFTMAX)
+                            .nOut(outputNum)
+                            .build())
+                    .build();
     }
 }
