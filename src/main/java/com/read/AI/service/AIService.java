@@ -1,4 +1,5 @@
 package com.read.AI.service;
+import org.datavec.image.loader.NativeImageLoader;
 import org.deeplearning4j.datasets.iterator.impl.MnistDataSetIterator;
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
@@ -8,21 +9,36 @@ import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.weights.WeightInit;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.jetbrains.annotations.NotNull;
+import javafx.scene.control.Label;
 import org.nd4j.evaluation.classification.Evaluation;
 import org.nd4j.linalg.activations.Activation;
+import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
+import org.nd4j.linalg.dataset.api.preprocessor.ImagePreProcessingScaler;
 import org.nd4j.linalg.learning.config.Nadam;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 
 
 //multilayered (MLP) applied to digit classification
 //Uses Two input layers and one hidden layer
 public class AIService {
+
+    private static final int IMAGE_WIDTH = 410;
+    private static final int IMAGE_HEIGHT = 402;
+
+    private static final int numRows = 28;
+    private static final int numColumns = 28;
+    private static final int outputNum = 10;// number of output classes
+    private static final int batchSize = 64;// batch size for each epoch
+    private static final int rngSeed = 123;// random number seed for reproducibility
+    private static final int numEpochs = 15;// number of epochs to perform
+    private static final double rate = 0.0015;// learning rate
 
     public String CreateModel() throws IOException {
         setupModel();
@@ -32,15 +48,6 @@ public class AIService {
     private static Logger log = LoggerFactory.getLogger(AIService.class);
 
     public static void setupModel() throws IOException {
-        //number of rows and columns in the input pictures
-        final int numRows = 28;
-        final int numColumns = 28;
-        final int outputNum = 10;// number of output classes
-        final int batchSize = 64;// batch size for each epoch
-        final int rngSeed = 123;// random number seed for reproducibility
-        final int numEpochs = 15;// number of epochs to perform
-        final double rate = 0.0015;// learning rate
-
         DataSetIterator mnistTrain = new MnistDataSetIterator(batchSize,true,rngSeed);
         DataSetIterator mnistTest = new MnistDataSetIterator(batchSize,true,rngSeed);
 
@@ -91,4 +98,23 @@ public class AIService {
                             .build())
                     .build();
     }
+
+    private void predictImage(BufferedImage img, Label lbl,MultiLayerNetwork model) throws IOException {
+        NativeImageLoader loader = new NativeImageLoader(IMAGE_HEIGHT, IMAGE_WIDTH, 1, true);
+        INDArray image = loader.asRowVector(img);
+        ImagePreProcessingScaler imageScaler = new ImagePreProcessingScaler();
+        imageScaler.transform(image);
+
+        String output = generateOutputWithResult(model, image);
+        lbl.setText(output);
+    }
+
+    private String generateOutputWithResult(MultiLayerNetwork model, INDArray image) {
+        INDArray output = model.output(image);
+        int predictedDigit = model.predict(image)[0];
+        double probability = output.getDouble(predictedDigit) * 100;
+        log.info("Prediction: {}", output);
+        return String.format("Prediction: %s with probability: %.1f%%", predictedDigit, probability);
+    }
+
 }
