@@ -25,21 +25,21 @@ import java.io.IOException;
 public class AIService {
 
     public String CreateModel() throws IOException {
-        setup();
+        setupModel();
         return "Model Created";
     }
 
     private static Logger log = LoggerFactory.getLogger(AIService.class);
 
-    public static void setup() throws IOException {
+    public static void setupModel() throws IOException {
         //number of rows and columns in the input pictures
         final int numRows = 28;
         final int numColumns = 28;
-        int outputNum = 10;// number of output classes
-        int batchSize = 64;// batch size for each epoch
-        int rngSeed = 123;// random number seed for reproducibility
-        int numEpochs = 15;// number of epochs to perform
-        double rate = 0.0015;// learning rate
+        final int outputNum = 10;// number of output classes
+        final int batchSize = 64;// batch size for each epoch
+        final int rngSeed = 123;// random number seed for reproducibility
+        final int numEpochs = 15;// number of epochs to perform
+        final double rate = 0.0015;// learning rate
 
         DataSetIterator mnistTrain = new MnistDataSetIterator(batchSize,true,rngSeed);
         DataSetIterator mnistTest = new MnistDataSetIterator(batchSize,true,rngSeed);
