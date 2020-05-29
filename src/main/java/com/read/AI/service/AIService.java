@@ -41,7 +41,8 @@ public class AIService {
     private static final int rngSeed = 123;// random number seed for reproducibility
     private static final int numEpochs = 15;// number of epochs to perform
     private static final double rate = 0.0015;// learning rate
-    private static final String DATA_PATH = "C:\\Users\\tobyb\\Documents\\GitHub\\AI-Read";
+    private static final String FILE_PATH = "AI-Read-Model.zip";
+    private static final boolean saveUpdater = true;
 
     public String CreateModel() throws IOException {
         setupModel();
@@ -49,6 +50,20 @@ public class AIService {
     }
 
     private static Logger log = LoggerFactory.getLogger(AIService.class);
+
+    public boolean DoesModelFileExist(String filePath) throws IOException {
+        File locationToSave = new File(filePath);
+        if (locationToSave.exists()) {
+            log.info("Saved Model Found!");
+            MultiLayerNetwork loadedModel = MultiLayerNetwork.load(locationToSave, saveUpdater);
+            return true;
+        } else {
+            log.error("File not found!");
+            log.error("Creating Model Now");
+            setupModel();
+            return false;
+        }
+    }
 
     public static void setupModel() throws IOException {
         DataSetIterator mnistTrain = new MnistDataSetIterator(batchSize,true,rngSeed);
@@ -68,8 +83,8 @@ public class AIService {
 
         log.info("SAVE TRAINED MODEL");
         //Save the model
-        File locationToSave = new File("AI-Read-Model.zip");      //Where to save the network. Note: the file is in .zip format - can be opened externally
-        boolean saveUpdater = true;                                             //Updater: i.e., the state for Momentum, RMSProp, Adagrad etc. Save this if you want to train your network more in the future
+        File locationToSave = new File(FILE_PATH);
+
         model.save(locationToSave, saveUpdater);
 
         BufferedImage myImage = ImageIO.read(new FileInputStream("C:\\Users\\tobyb\\Documents\\GitHub\\AI-Read\\handwritten4.jpeg"));
