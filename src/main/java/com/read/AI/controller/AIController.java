@@ -8,11 +8,14 @@ import java.io.IOException;
 
 @RestController
 public class AIController {
-    AIService AIService = new AIService();
+    private static final AIService AIService = new AIService();
+    private static final String FILE_PATH = "AI-Read-Model.zip";
+
 
     @RequestMapping("/")
     public String InitilazeModel() throws IOException {
-        return AIService.CreateModel();
+        AIService.DoesModelFileExist(FILE_PATH);
+        AIService.TestExampleImage();
+        return "Model Created";
     }
-
 }

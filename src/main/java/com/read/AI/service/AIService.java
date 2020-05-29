@@ -1,7 +1,4 @@
 package com.read.AI.service;
-import org.datavec.image.loader.ImageLoader;
-import org.datavec.image.loader.Java2DNativeImageLoader;
-import org.datavec.image.loader.NativeImageLoader;
 import org.deeplearning4j.datasets.iterator.impl.MnistDataSetIterator;
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
@@ -13,12 +10,8 @@ import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.jetbrains.annotations.NotNull;
 import org.nd4j.evaluation.classification.Evaluation;
 import org.nd4j.linalg.activations.Activation;
-import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
-import org.nd4j.linalg.dataset.api.preprocessor.DataNormalization;
-import org.nd4j.linalg.dataset.api.preprocessor.ImagePreProcessingScaler;
 import org.nd4j.linalg.learning.config.Nadam;
-import org.nd4j.linalg.lossfunctions.LossFunctions;
 import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,29 +36,27 @@ public class AIService {
     private static final double rate = 0.0015;// learning rate
     private static final String FILE_PATH = "AI-Read-Model.zip";
     private static final boolean saveUpdater = true;
-
-    public String CreateModel() throws IOException {
-        setupModel();
-        return "Model Created";
-    }
+    private static final File locationToSave = new File(FILE_PATH);
 
     private static Logger log = LoggerFactory.getLogger(AIService.class);
 
-    public boolean DoesModelFileExist(String filePath) throws IOException {
-        File locationToSave = new File(filePath);
+    public void DoesModelFileExist(String filePath) throws IOException {
         if (locationToSave.exists()) {
             log.info("Saved Model Found!");
-            MultiLayerNetwork loadedModel = MultiLayerNetwork.load(locationToSave, saveUpdater);
-            return true;
+
         } else {
             log.error("File not found!");
             log.error("Creating Model Now");
-            setupModel();
-            return false;
+            setupModelAndData();
         }
     }
 
-    public static void setupModel() throws IOException {
+    public void TestExampleImage() throws IOException {
+        MultiLayerNetwork loadedModel = MultiLayerNetwork.load(locationToSave, saveUpdater);
+        BufferedImage myImage = ImageIO.read(new FileInputStream("handwritten4.jpeg"));
+    }
+
+    public static void setupModelAndData() throws IOException {
         DataSetIterator mnistTrain = new MnistDataSetIterator(batchSize,true,rngSeed);
         DataSetIterator mnistTest = new MnistDataSetIterator(batchSize,true,rngSeed);
 
@@ -73,29 +64,46 @@ public class AIService {
 
         log.info("Train model....");
         model.fit(mnistTrain, numEpochs);
-
         log.info("Evaluate model....");
         Evaluation eval = model.evaluate(mnistTest);
-
         log.info(eval.stats());
         log.info("****************modelFinished********************");
         log.info("Testing model on example image....");
-
         log.info("SAVE TRAINED MODEL");
+
         //Save the model
         File locationToSave = new File(FILE_PATH);
-
         model.save(locationToSave, saveUpdater);
+    }
 
-        BufferedImage myImage = ImageIO.read(new FileInputStream("C:\\Users\\tobyb\\Documents\\GitHub\\AI-Read\\handwritten4.jpeg"));
-
+    private static MultiLayerConfiguration setConfigurationForModel(int numRows, int numColumns, int outputNum, int rngSeed, double rate) {
+        log.info("Setting up Configuration for Model....");
+        return new NeuralNetConfiguration.Builder()
+                .seed(rngSeed)
+                .activation(Activation.RELU)
+                .weightInit(WeightInit.XAVIER)
+                .updater(new Nadam())
+                .l2(rate * 0.005) // Regularize Learning model
+                .list()
+                .layer(new DenseLayer.Builder()
+                        .nIn(numRows * numColumns)
+                        .nOut(500)
+                        .build())
+                .layer(new DenseLayer.Builder()
+                        .nIn(500)
+                        .nOut(100)
+                        .build())
+                .layer(new OutputLayer.Builder(LossFunction.NEGATIVELOGLIKELIHOOD)
+                        .activation(Activation.SOFTMAX)
+                        .nOut(outputNum)
+                        .build())
+                .build();
     }
 
     @NotNull
     private static MultiLayerNetwork buildModel(int numRows, int numColumns, int outputNum, int rngSeed, double rate) throws IOException {
         log.info("Build model....");
         MultiLayerConfiguration configuration = setConfigurationForModel(numRows, numColumns, outputNum, rngSeed, rate);
-
         MultiLayerNetwork model = new MultiLayerNetwork(configuration);
         model.init();
         model.setListeners(new ScoreIterationListener(5));//print the score with every iteration
@@ -103,28 +111,6 @@ public class AIService {
         return model;
     }
 
-    private static MultiLayerConfiguration setConfigurationForModel(int numRows, int numColumns, int outputNum, int rngSeed, double rate) {
-        log.info("Setting up Configuration for Model....");
-        return new NeuralNetConfiguration.Builder()
-                    .seed(rngSeed)
-                    .activation(Activation.RELU)
-                    .weightInit(WeightInit.XAVIER)
-                    .updater(new Nadam())
-                    .l2(rate * 0.005) // Regularize Learning model
-                    .list()
-                    .layer(new DenseLayer.Builder()
-                            .nIn(numRows * numColumns)
-                            .nOut(500)
-                            .build())
-                    .layer(new DenseLayer.Builder()
-                            .nIn(500)
-                            .nOut(100)
-                            .build())
-                    .layer(new OutputLayer.Builder(LossFunction.NEGATIVELOGLIKELIHOOD)
-                            .activation(Activation.SOFTMAX)
-                            .nOut(outputNum)
-                            .build())
-                    .build();
-    }
+
 
 }
