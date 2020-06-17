@@ -1,4 +1,7 @@
 package com.read.AI.service;
+import org.datavec.image.loader.ImageLoader;
+import org.datavec.image.loader.Java2DNativeImageLoader;
+import org.datavec.image.loader.NativeImageLoader;
 import org.deeplearning4j.datasets.iterator.impl.MnistDataSetIterator;
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
@@ -10,7 +13,13 @@ import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.jetbrains.annotations.NotNull;
 import org.nd4j.evaluation.classification.Evaluation;
 import org.nd4j.linalg.activations.Activation;
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.api.ops.impl.shape.ExpandDims;
+import org.nd4j.linalg.api.ops.impl.shape.Reshape;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
+import org.nd4j.linalg.dataset.api.preprocessor.DataNormalization;
+import org.nd4j.linalg.dataset.api.preprocessor.ImagePreProcessingScaler;
+import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.learning.config.Nadam;
 import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction;
 import org.slf4j.Logger;
@@ -53,7 +62,22 @@ public class AIService {
 
     public void TestExampleImage() throws IOException {
         MultiLayerNetwork loadedModel = MultiLayerNetwork.load(locationToSave, saveUpdater);
-        BufferedImage myImage = ImageIO.read(new FileInputStream("handwritten4.jpeg"));
+        BufferedImage myImage = ImageIO.read(new FileInputStream("fiveTestImage.png"));
+
+        NativeImageLoader loader = new NativeImageLoader(myImage.getHeight(), myImage.getWidth(), 1);
+        ImagePreProcessingScaler imageScaler = new ImagePreProcessingScaler();
+
+        INDArray img = loader.asMatrix(myImage);
+        INDArray reshaped = img.reshape(1,784);
+
+
+        imageScaler.transform(reshaped);
+
+
+        INDArray output = loadedModel.output(reshaped);
+        log.info(output.toString());
+        String answer = output.toString();
+        int x = 10;
     }
 
     public static void setupModelAndData() throws IOException {
