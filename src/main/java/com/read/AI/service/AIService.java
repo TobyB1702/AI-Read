@@ -30,6 +30,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Arrays;
 
 
 //multilayered (MLP) applied to digit classification
@@ -60,7 +61,7 @@ public class AIService {
         }
     }
 
-    public void TestExampleImage() throws IOException {
+    public int[] FiveImageTest() throws IOException {
         MultiLayerNetwork loadedModel = MultiLayerNetwork.load(locationToSave, saveUpdater);
         BufferedImage myImage = ImageIO.read(new FileInputStream("fiveTestImage.png"));
 
@@ -70,14 +71,13 @@ public class AIService {
         INDArray img = loader.asMatrix(myImage);
         INDArray reshaped = img.reshape(1,784);
 
-
         imageScaler.transform(reshaped);
 
-
-        INDArray output = loadedModel.output(reshaped);
+        INDArray output = loadedModel.output(reshaped,true);
         log.info(output.toString());
-        String answer = output.toString();
-        int x = 10;
+        final int[] lastLayerOfNetwork = loadedModel.predict(reshaped);
+
+        return lastLayerOfNetwork;
     }
 
     public static void setupModelAndData() throws IOException {

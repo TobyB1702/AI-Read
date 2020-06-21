@@ -15,7 +15,7 @@ public class AIController {
     @RequestMapping("/")
     public String InitilazeModel() throws IOException {
         AIService.DoesModelFileExist(FILE_PATH);
-        AIService.TestExampleImage();
+        AIService.FiveImageTest();
         return "Model Created";
     }
 }
